@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Post a Problem</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .form-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        button {
+            background-color: #5c6bc0;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #3f51b5;
+        }
+        #ai-response {
+            margin-top: 30px;
+            background-color: #e8f0fe;
+            padding: 20px;
+            border-left: 6px solid #3f51b5;
+            display: none;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Post a Problem</h2>
+    <form id="problemForm">
+        <label for="title">Problem Title:</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="description">Problem Description:</label>
+        <textarea id="description" name="description" rows="6" required></textarea>
+
+        <label for="category">Category:</label>
+        <select id="category" name="category" required>
+            <option value="">--Select a Category--</option>
+            <option value="technical">Technical Issue</option>
+            <option value="account">Account Problem</option>
+            <option value="billing">Billing Issue</option>
+            <option value="other">Other</option>
+        </select>
+
+        <button type="submit">Submit Problem</button>
+    </form>
+
+    <div id="ai-response">
+        <h3>AI Solution:</h3>
+        <p id="solution-text"></p>
+    </div>
+</div>
+
+<script>
+document.getElementById('problemForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const title = document.getElementById('title').value;
+    const description = document.getElementById('description').value;
+    const category = document.getElementById('category').value;
+
+    const aiResponse = document.getElementById('ai-response');
+    const solutionText = document.getElementById('solution-text');
+    aiResponse.style.display = 'block';
+    solutionText.innerText = "Generating AI solution...";
+
+    const prompt = `Problem Title: ${title}\nCategory: ${category}\nDescription: ${description}\n\nWhat is the best solution to this problem?`;
+
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "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" // <<< Replace with your key
+            },
+            body: JSON.stringify({
+                model: "gpt-3.5-turbo",
+                messages: [
+                    { role: "system", content: "You are a helpful support assistant." },
+                    { role: "user", content: prompt }
+                ],
+                temperature: 0.7
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.choices && data.choices.length > 0) {
+            solutionText.innerText = data.choices[0].message.content.trim();
+        } else {
+            solutionText.innerText = "Sorry, I couldn't generate a solution.";
+        }
+
+    } catch (error) {
+        console.error(error);
+        solutionText.innerText = "Error fetching AI solution. Check your API key and internet connection.";
+    }
+});
+</script>
+
+</body>
+</html>
